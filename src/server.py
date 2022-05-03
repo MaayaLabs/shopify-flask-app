@@ -21,7 +21,8 @@ app = Flask(__name__)
 ACCESS_TOKEN = None
 NONCE = None
 ACCESS_MODE = []  # Defaults to offline access mode if left blank or omitted. https://shopify.dev/apps/auth/oauth/access-modes
-SCOPES = ['write_script_tags']  # https://shopify.dev/docs/admin-api/access-scopes
+SCOPES = ['read_all_orders', 'read_products', 'read_orders', 'read_customers',
+          "read_inventory", "read_reports"]  # https://shopify.dev/docs/admin-api/access-scopes
 
 
 @app.route('/app_launched', methods=['GET'])
@@ -56,11 +57,14 @@ def app_installed():
     #   ACCESS_MODE and SCOPES we asked for in #app_installed
     shop = request.args.get('shop')
     code = request.args.get('code')
+    print("Shopify----------", shop, code)
     ACCESS_TOKEN = ShopifyStoreClient.authenticate(shop=shop, code=code)
 
     # We have an access token! Now let's register a webhook so Shopify will notify us if/when the app gets uninstalled
     # NOTE This webhook will call the #app_uninstalled function defined below
     shopify_client = ShopifyStoreClient(shop=shop, access_token=ACCESS_TOKEN)
+    print("Shopify Access", ACCESS_TOKEN)
+
     shopify_client.create_webook(address=WEBHOOK_APP_UNINSTALL_URL, topic="app/uninstalled")
 
     redirect_url = helpers.generate_post_install_redirect_url(shop=shop)
